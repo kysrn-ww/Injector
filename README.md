@@ -1,8 +1,4 @@
-<div align="center">
-   <img src="ventola.jpg" width="128" alt="ventola"></img>
-   <h1>ChanchitoInjector</h1>
-   <p>ManualMap DLL injector for Windows games</p>
-</div>
+
 
 ## Supported games
 
