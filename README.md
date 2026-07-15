@@ -48,5 +48,15 @@ ChanchitoInjector.exe 1234 C:\cheats\mydll.dll
 - Win32 API
 - MSBuild / Visual Studio
 
+<div align="center">
+   <img src="previewchi.png" width="600" alt="preview"></img>
+</div>
+
+## CLI
+
+<div align="center">
+   <img src="usage.png" width="600" alt="usage"></img>
+</div>
+
 > [!WARNING]
 > For educational purposes only. Use at your own risk.
