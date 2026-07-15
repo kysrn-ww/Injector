@@ -76,5 +76,5 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 
-
+IDI_ICON1               ICON                    "icon1.ico"
 

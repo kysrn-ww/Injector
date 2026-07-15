@@ -766,8 +766,9 @@ int main(int argc, char* argv[]) {
 		dllPath = argv[2];
 	}
 	else {
-		Helper::SetConsoleColor(FG_YELLOW | FOREGROUND_INTENSITY);
-		std::cerr << "Usage: " << exeName << " <dll_path>\nOR: " << exeName << " <process_name_or_PID> <dll_path>" << std::endl << std::endl;
+		Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+		std::cerr << "! invalid args" << std::endl;
+		std::cerr << "  " << exeName << " [process] <dll>" << std::endl << std::endl;
 		Helper::SetConsoleColor(FG_WHITE);
 
 		system("pause");

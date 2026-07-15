@@ -1,6 +1,8 @@
-# ChanchitoInjector
-
-Inyector de DLL por ManualMap para juegos en Windows.
+<div align="center">
+   <img src="ventola.jpg" width="128" alt="ventola"></img>
+   <h1>ChanchitoInjector</h1>
+   <p>Inyector de DLL por ManualMap para juegos en Windows</p>
+</div>
 
 ## Juegos compatibles
 
