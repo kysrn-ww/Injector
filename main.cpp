@@ -17,7 +17,9 @@
 #define FG_CYAN (FOREGROUND_BLUE | FOREGROUND_GREEN)
 #define FG_MAGENTA (FOREGROUND_RED | FOREGROUND_BLUE)
 #define FG_YELLOW (FOREGROUND_RED | FOREGROUND_GREEN)
-#define FG_WHITE (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE)
+#define FG_WHITE (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE)
+#define FG_GREEN (FOREGROUND_GREEN)
+#define FG_RED (FOREGROUND_RED)
 
 HANDLE hProcess = nullptr;
 std::wstring targetProcessName;
@@ -40,7 +42,7 @@ namespace Helper {
 		std::cout << "  ==================================" << std::endl;
 		std::cout << "   ChanchitoInjector v" << INJECTOR_VERSION << std::endl;
 		std::cout << "  ==================================" << std::endl;
-		SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+		SetConsoleColor(FG_GREEN | FOREGROUND_INTENSITY);
 		std::cout << "  :: ManualMap DLL injector" << std::endl;
 		std::cout << "  :: Targets:" << std::endl;
 		for (const std::wstring& game : SUPPORTED_GAMES) {
@@ -297,7 +299,7 @@ namespace Injection {
 				Helper::SetConsoleColor(FG_WHITE);
 				return false;
 			}
-			Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_GREEN | FOREGROUND_INTENSITY);
 			std::cout << "Memory allocated for path at address: " << lpPathAddress << std::endl;
 			Helper::SetConsoleColor(FG_WHITE);
 
@@ -338,7 +340,7 @@ namespace Injection {
 				VirtualFreeEx(hProcess, lpPathAddress, 0, MEM_RELEASE);
 				return false;
 			}
-			Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_GREEN | FOREGROUND_INTENSITY);
 			std::cout << "Remote thread created with handle: " << hThread << std::endl;
 			Helper::SetConsoleColor(FG_WHITE);
 
@@ -347,7 +349,7 @@ namespace Injection {
 			GetExitCodeThread(hThread, &exitCode);
 
 			std::cout << "DLL ";
-			Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_GREEN | FOREGROUND_INTENSITY);
 			std::wcout << std::wstring(dllFileName.begin(), dllFileName.end());
 			Helper::SetConsoleColor(FG_WHITE);
 			std::cout << " injected successfully into ";
@@ -376,7 +378,7 @@ namespace Injection {
 				Helper::SetConsoleColor(FG_WHITE);
 				return false;
 			}
-			Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_GREEN | FOREGROUND_INTENSITY);
 			std::cout << "Memory allocated at address: " << allocatedMem << std::endl;
 			Helper::SetConsoleColor(FG_WHITE);
 
@@ -392,7 +394,7 @@ namespace Injection {
 				VirtualFreeEx(hProcess, allocatedMem, 0, MEM_RELEASE);
 				return false;
 			}
-			Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_GREEN | FOREGROUND_INTENSITY);
 			std::cout << "Successfully wrote " << bytesWritten << " bytes to target process." << std::endl;
 			Helper::SetConsoleColor(FG_WHITE);
 
@@ -408,7 +410,7 @@ namespace Injection {
 				VirtualFreeEx(hProcess, allocatedMem, 0, MEM_RELEASE);
 				return false;
 			}
-			Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_GREEN | FOREGROUND_INTENSITY);
 			std::cout << "Remote thread created with handle: " << hThread << std::endl;
 			Helper::SetConsoleColor(FG_WHITE);
 
@@ -417,7 +419,7 @@ namespace Injection {
 			GetExitCodeThread(hThread, &exitCode);
 
 			std::cout << "DLL ";
-			Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_GREEN | FOREGROUND_INTENSITY);
 			std::wcout << std::wstring(dllFileName.begin(), dllFileName.end());
 			Helper::SetConsoleColor(FG_WHITE);
 			std::cout << " injected successfully into ";
@@ -444,7 +446,7 @@ namespace Injection {
 			return false;
 		}
 
-		Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+		Helper::SetConsoleColor(FG_GREEN | FOREGROUND_INTENSITY);
 		std::cout << "All required modules found. Waiting 20 seconds..." << std::endl;
 		Helper::SetConsoleColor(FG_WHITE);
 		std::this_thread::sleep_for(std::chrono::seconds(20));
@@ -637,7 +639,7 @@ namespace SteamInjection {
 					return false;
 				}
 				else {
-					Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+					Helper::SetConsoleColor(FG_GREEN | FOREGROUND_INTENSITY);
 					std::cout << "Successfully injected " << steamDllName << " into steam.exe" << std::endl;
 					Helper::SetConsoleColor(FG_WHITE);
 					CloseHandle(hSteamProcess);
@@ -747,7 +749,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	if (Helper::IsElevated()) {
-		Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+		Helper::SetConsoleColor(FG_GREEN | FOREGROUND_INTENSITY);
 		std::cout << "[*] Injector is running with administrator privileges." << std::endl;
 	}
 
@@ -766,7 +768,7 @@ int main(int argc, char* argv[]) {
 		dllPath = argv[2];
 	}
 	else {
-		Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+		Helper::SetConsoleColor(FG_GREEN | FOREGROUND_INTENSITY);
 		std::cerr << "! invalid args" << std::endl;
 		std::cerr << "  " << exeName << " [process] <dll>" << std::endl << std::endl;
 		Helper::SetConsoleColor(FG_WHITE);
@@ -849,7 +851,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+	Helper::SetConsoleColor(FG_GREEN | FOREGROUND_INTENSITY);
 	std::wcout << L"Process found: " << targetProcessName << std::endl;
 	Helper::SetConsoleColor(FG_WHITE);
 
@@ -883,4 +885,5 @@ int main(int argc, char* argv[]) {
 	CloseHandle(hProcess);
 	return 0;
 }
+
 

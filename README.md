@@ -1,42 +1,46 @@
+<div align="center">
+   <img src="ventola.jpg" width="128" alt="ventola"></img>
+   <h1>ChanchitoInjector</h1>
+   <p>ManualMap DLL injector for Windows games</p>
+</div>
 
+## Supported games
 
-## Juegos compatibles
-
-| Juego | Proceso |
-|-------|---------|
+| Game | Process |
+|------|---------|
 | CS2 | cs2.exe |
 | CS:GO | csgo.exe |
 | Rust | RustClient.exe |
 | Garry's Mod | gmod.exe |
 
-## Como funciona
+## How it works
 
-Toma una DLL y la inyecta en un proceso destino usando **ManualMap** (mapeo manual sin LoadLibrary). Para CS2 y CS:GO desactiva los hooks de VAC antes de inyectar y los restaura al terminar.
+Loads a DLL into a target process using **ManualMap** (manual mapping without LoadLibrary). For CS2 and CS:GO it unhooks VAC before injection and restores hooks afterwards.
 
-Tambien busca DLLs con prefijo `steam_` para inyectarlas en Steam si existen.
+Also scans for `steam_` prefixed DLLs to inject into Steam when available.
 
-## Modos de uso
+## Usage
 
-### Automatico
-Ejecuta el inyector y espera a que el juego arranque:
+### Auto mode
+Launches injector and waits for the game to start:
 
 ```
 ChanchitoInjector.exe C:\cheats\mydll.dll
 ```
 
-### Manual
-Especifica proceso o PID directamente:
+### Manual mode
+Target a specific process by name or PID:
 
 ```
 ChanchitoInjector.exe cs2.exe C:\cheats\mydll.dll
 ChanchitoInjector.exe 1234 C:\cheats\mydll.dll
 ```
 
-## Compilar
+## Build
 
-1. Abri `ChanchitoInjector.sln` con Visual Studio 2017+
+1. Open `ChanchitoInjector.sln` in Visual Studio 2017+
 2. Build → Build Solution (F7)
-3. El .exe sale en `Release/` o `x64/Release/`
+3. Binary outputs to `Release/` (x86) or `x64/Release/`
 
 ## Stack
 
@@ -45,4 +49,4 @@ ChanchitoInjector.exe 1234 C:\cheats\mydll.dll
 - MSBuild / Visual Studio
 
 > [!WARNING]
-> El autor no se responsabiliza por baneos. Solo para uso educativo.
+> For educational purposes only. Use at your own risk.
