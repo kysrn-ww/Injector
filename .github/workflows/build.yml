@@ -1,0 +1,68 @@
+name: Windows Build and Hash Update
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-hash:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v1
+
+      - name: Build Solution (x86)
+        run: msbuild ChanchitoInjector.sln /p:Configuration=Release /p:Platform=x86
+
+      - name: Build Solution (x64)
+        run: msbuild ChanchitoInjector.sln /p:Configuration=Release /p:Platform=x64
+
+      - name: Generate MD5 Hash (x86)
+        shell: powershell
+        run: |
+          $exePath = "Release\\ChanchitoInjector_x86.exe"
+          $md5 = Get-FileHash $exePath -Algorithm MD5 | Select-Object -ExpandProperty Hash
+          echo "MD5 Hash (x86): $md5"
+
+      - name: Generate MD5 Hash (x64)
+        shell: powershell
+        run: |
+          $exePath = "x64\\Release\\ChanchitoInjector_x64.exe"
+          $md5 = Get-FileHash $exePath -Algorithm MD5 | Select-Object -ExpandProperty Hash
+          echo "MD5 Hash (x64): $md5"
+
+      - name: Get hash commit
+        shell: powershell
+        run: |
+          $ARTIFACT_HASH=git rev-parse --short HEAD
+          echo "ARTIFACT_HASH=$ARTIFACT_HASH" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Upload Build Artifact (x86)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChanchitoInjector-x86
+          path: Release/ChanchitoInjector_x86.exe
+
+      - name: Upload Build Artifact (x64)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChanchitoInjector-x64
+          path: x64/Release/ChanchitoInjector_x64.exe
+
+      - name: Release
+        id: release
+        uses: ncipollo/release-action@v1
+        with:
+          body: |
+            Automatic pre-release created by GitHub Actions
+          name: "Nightly Build ${{ env.ARTIFACT_HASH }}"
+          tag: "prerelease-${{ env.ARTIFACT_HASH }}"
+          prerelease: true
+          artifacts: "x64/Release/ChanchitoInjector_x64.exe,Release/ChanchitoInjector_x86.exe"
