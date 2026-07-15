@@ -14,8 +14,10 @@
 #include <psapi.h>
 #include <memoryapi.h>
 
-#define FOREGROUND_YELLOW (FOREGROUND_RED | FOREGROUND_GREEN)
-#define FOREGROUND_WHITE (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE)
+#define FG_CYAN (FOREGROUND_BLUE | FOREGROUND_GREEN)
+#define FG_MAGENTA (FOREGROUND_RED | FOREGROUND_BLUE)
+#define FG_YELLOW (FOREGROUND_RED | FOREGROUND_GREEN)
+#define FG_WHITE (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE)
 
 HANDLE hProcess = nullptr;
 std::wstring targetProcessName;
@@ -34,15 +36,17 @@ namespace Helper {
 	}
 
 	void PrintBanner() {
-		SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
-		std::cout << "ChanchitoInjector v" << INJECTOR_VERSION << std::endl << std::endl;
-		SetConsoleColor(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-		std::cout << "ManualMap DLL injector for:" << std::endl;
+		SetConsoleColor(FG_CYAN | FOREGROUND_INTENSITY);
+		std::cout << "  ==================================" << std::endl;
+		std::cout << "   ChanchitoInjector v" << INJECTOR_VERSION << std::endl;
+		std::cout << "  ==================================" << std::endl;
+		SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+		std::cout << "  :: ManualMap DLL injector" << std::endl;
+		std::cout << "  :: Targets:" << std::endl;
 		for (const std::wstring& game : SUPPORTED_GAMES) {
-			std::wcout << L"- " << game << std::endl;
+			std::wcout << L"     " << game << std::endl;
 		}
-		std::cout << "ChanchitoInjector - ManualMap DLL injector" << std::endl;
-		SetConsoleColor(FOREGROUND_WHITE);
+		SetConsoleColor(FG_WHITE);
 	}
 
 	bool IsElevated() {
@@ -54,7 +58,7 @@ namespace Helper {
 		if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken)) {
 			SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::cerr << "OpenProcessToken failed: " << GetLastError() << std::endl;
-			SetConsoleColor(FOREGROUND_WHITE);
+			SetConsoleColor(FG_WHITE);
 			return FALSE;
 		}
 
@@ -64,7 +68,7 @@ namespace Helper {
 		else {
 			SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::cerr << "GetTokenInformation failed: " << GetLastError() << std::endl;
-			SetConsoleColor(FOREGROUND_WHITE);
+			SetConsoleColor(FG_WHITE);
 		}
 
 		if (hToken) {
@@ -102,7 +106,7 @@ namespace ProcessUtils {
 		if (snapshot == INVALID_HANDLE_VALUE) {
 			Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::cerr << "CreateToolhelp32Snapshot failed: " << GetLastError() << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			return NULL;
 		}
 
@@ -119,7 +123,7 @@ namespace ProcessUtils {
 					else {
 						Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 						std::wcerr << L"OpenProcess failed for process '" << processName << L"' (PID: " << processId << L"): " << GetLastError() << std::endl;
-						Helper::SetConsoleColor(FOREGROUND_WHITE);
+						Helper::SetConsoleColor(FG_WHITE);
 					}
 				}
 			} while (Process32NextW(snapshot, &entry));
@@ -138,7 +142,7 @@ namespace ProcessUtils {
 		if (hProc == NULL) {
 			Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::cerr << "OpenProcess failed for PID " << processId << ": " << GetLastError() << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 		}
 		else {
 			HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
@@ -157,9 +161,9 @@ namespace ProcessUtils {
 			}
 			else
 			{
-				Helper::SetConsoleColor(FOREGROUND_YELLOW | FOREGROUND_INTENSITY);
+				Helper::SetConsoleColor(FG_YELLOW | FOREGROUND_INTENSITY);
 				std::cerr << "Warning: Could not retrieve process name for PID " << processId << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				targetProcessName = std::to_wstring(processId);
 			}
 		}
@@ -177,7 +181,7 @@ namespace ModuleUtils {
 			if (!EnumProcessModules(hProcess, hModules.data(), static_cast<DWORD>(hModules.size() * sizeof(HMODULE)), &cbNeeded)) {
 				Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 				std::cerr << "EnumProcessModules failed: " << GetLastError() << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				return false;
 			}
 
@@ -206,9 +210,9 @@ namespace ModuleUtils {
 			auto currentTime = std::chrono::steady_clock::now();
 			auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
 			if (elapsedTime > timeoutMs) {
-				Helper::SetConsoleColor(FOREGROUND_YELLOW | FOREGROUND_INTENSITY);
+				Helper::SetConsoleColor(FG_YELLOW | FOREGROUND_INTENSITY);
 				std::cerr << "Timeout waiting for modules." << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				return false;
 			}
 
@@ -262,24 +266,24 @@ namespace Injection {
 		std::string absoluteDllPath = dllPath.string();
 		std::string dllFileName = Helper::GetFileNameFromPath(absoluteDllPath);
 
-		Helper::SetConsoleColor(FOREGROUND_YELLOW | FOREGROUND_INTENSITY);
+		Helper::SetConsoleColor(FG_YELLOW | FOREGROUND_INTENSITY);
 		std::wcout << L"Attempting to inject DLL: " << std::wstring(dllFileName.begin(), dllFileName.end()) << L" into process: " << targetProcessName << std::endl;
-		Helper::SetConsoleColor(FOREGROUND_WHITE);
+		Helper::SetConsoleColor(FG_WHITE);
 
 		std::ifstream file(absoluteDllPath);
 		if (!file.good()) {
 			Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::cerr << "Error: DLL file not found: " << absoluteDllPath << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			return false;
 		}
 		file.close();
-		std::cout << "[+] DLL file found." << std::endl;
+		std::cout << "[*] DLL file found." << std::endl;
 
 		if (dllFileName == "skeet.dll") {
-			Helper::SetConsoleColor(FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_CYAN | FOREGROUND_INTENSITY);
 			std::cout << "Performing skeet-specific injection..." << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 
 			bypass(hProcess);
 
@@ -290,28 +294,28 @@ namespace Injection {
 			if (lpPathAddress == nullptr) {
 				Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 				std::cerr << "Error: VirtualAllocEx failed (skeet path alloc): " << GetLastError() << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				return false;
 			}
-			Helper::SetConsoleColor(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
 			std::cout << "Memory allocated for path at address: " << lpPathAddress << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 
 			if (!WriteProcessMemory(hProcess, lpPathAddress, absoluteDllPath.c_str(), absoluteDllPath.size() + 1, nullptr)) {
 				Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 				std::cerr << "Error: WriteProcessMemory failed (skeet path write): " << GetLastError() << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				VirtualFreeEx(hProcess, lpPathAddress, 0, MEM_RELEASE);
 				return false;
 			}
 
-			std::cout << "[+] DLL path written successfully." << std::endl;
+			std::cout << "[*] DLL path written successfully." << std::endl;
 
 			HMODULE hKernel32 = GetModuleHandleA("kernel32.dll");
 			if (!hKernel32) {
 				Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 				std::cerr << "Error: GetModuleHandleA failed for kernel32.dll" << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				VirtualFreeEx(hProcess, lpPathAddress, 0, MEM_RELEASE);
 				return false;
 			}
@@ -320,114 +324,114 @@ namespace Injection {
 			if (!lpLoadLibraryA) {
 				Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 				std::cerr << "Error: GetProcAddress failed for LoadLibraryA" << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				VirtualFreeEx(hProcess, lpPathAddress, 0, MEM_RELEASE);
 				return false;
 			}
-			std::cout << "[+] LoadLibraryA address found." << std::endl;
+			std::cout << "[*] LoadLibraryA address found." << std::endl;
 
 			HANDLE hThread = CreateRemoteThread(hProcess, nullptr, 0, (LPTHREAD_START_ROUTINE)lpLoadLibraryA, lpPathAddress, 0, nullptr);
 			if (!hThread) {
 				Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 				std::cerr << "Error: CreateRemoteThread failed (skeet injection): " << GetLastError() << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				VirtualFreeEx(hProcess, lpPathAddress, 0, MEM_RELEASE);
 				return false;
 			}
-			Helper::SetConsoleColor(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
 			std::cout << "Remote thread created with handle: " << hThread << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 
 			WaitForSingleObject(hThread, INFINITE);
 			DWORD exitCode;
 			GetExitCodeThread(hThread, &exitCode);
 
 			std::cout << "DLL ";
-			Helper::SetConsoleColor(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
 			std::wcout << std::wstring(dllFileName.begin(), dllFileName.end());
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			std::cout << " injected successfully into ";
-			Helper::SetConsoleColor(FOREGROUND_YELLOW | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_YELLOW | FOREGROUND_INTENSITY);
 			std::wcout << targetProcessName;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			std::cout << ", Return code: ";
-			Helper::SetConsoleColor(FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_CYAN | FOREGROUND_INTENSITY);
 			std::cout << exitCode << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 
 			CloseHandle(hThread);
 			backup(hProcess);
-			std::cout << "[+] Injection completed (skeet)." << std::endl;
+			std::cout << "[*] Injection completed (skeet)." << std::endl;
 			return true;
 		}
 		else {
-			Helper::SetConsoleColor(FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_CYAN | FOREGROUND_INTENSITY);
 			std::cout << "Allocating memory in target process..." << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			LPVOID allocatedMem = VirtualAllocEx(hProcess, NULL, absoluteDllPath.size() + 1, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 			if (!allocatedMem) {
 				DWORD error = GetLastError();
 				Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 				std::cerr << "Error: VirtualAllocEx failed: " << error << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				return false;
 			}
-			Helper::SetConsoleColor(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
 			std::cout << "Memory allocated at address: " << allocatedMem << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 
-			Helper::SetConsoleColor(FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_CYAN | FOREGROUND_INTENSITY);
 			std::cout << "Writing DLL path to target process..." << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			SIZE_T bytesWritten;
 			if (!WriteProcessMemory(hProcess, allocatedMem, absoluteDllPath.c_str(), absoluteDllPath.size() + 1, &bytesWritten)) {
 				DWORD error = GetLastError();
 				Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 				std::cerr << "Error: WriteProcessMemory failed: " << error << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				VirtualFreeEx(hProcess, allocatedMem, 0, MEM_RELEASE);
 				return false;
 			}
-			Helper::SetConsoleColor(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
 			std::cout << "Successfully wrote " << bytesWritten << " bytes to target process." << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 
-			Helper::SetConsoleColor(FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_CYAN | FOREGROUND_INTENSITY);
 			std::cout << "Creating remote thread in target process..." << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			HANDLE hThread = CreateRemoteThread(hProcess, 0, 0, (LPTHREAD_START_ROUTINE)LoadLibraryA, allocatedMem, 0, 0);
 			if (!hThread) {
 				DWORD error = GetLastError();
 				Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 				std::cerr << "Error: CreateRemoteThread failed: " << error << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				VirtualFreeEx(hProcess, allocatedMem, 0, MEM_RELEASE);
 				return false;
 			}
-			Helper::SetConsoleColor(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
 			std::cout << "Remote thread created with handle: " << hThread << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 
 			WaitForSingleObject(hThread, INFINITE);
 			DWORD exitCode;
 			GetExitCodeThread(hThread, &exitCode);
 
 			std::cout << "DLL ";
-			Helper::SetConsoleColor(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
 			std::wcout << std::wstring(dllFileName.begin(), dllFileName.end());
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			std::cout << " injected successfully into ";
-			Helper::SetConsoleColor(FOREGROUND_YELLOW | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_YELLOW | FOREGROUND_INTENSITY);
 			std::wcout << targetProcessName;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			std::cout << ", Return code: ";
-			Helper::SetConsoleColor(FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_CYAN | FOREGROUND_INTENSITY);
 			std::cout << exitCode << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 
 			VirtualFreeEx(hProcess, allocatedMem, 0, MEM_RELEASE);
 			CloseHandle(hThread);
-			std::cout << "[+] Injection completed." << std::endl;
+			std::cout << "[*] Injection completed." << std::endl;
 			return true;
 		}
 	}
@@ -436,13 +440,13 @@ namespace Injection {
 		if (!ModuleUtils::WaitForModules(hProcess, moduleNames, timeoutMs)) {
 			Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::cerr << "Failed to wait for necessary modules." << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			return false;
 		}
 
-		Helper::SetConsoleColor(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+		Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
 		std::cout << "All required modules found. Waiting 20 seconds..." << std::endl;
-		Helper::SetConsoleColor(FOREGROUND_WHITE);
+		Helper::SetConsoleColor(FG_WHITE);
 		std::this_thread::sleep_for(std::chrono::seconds(20));
 
 		return InjectDll(dllPath, hProcess);
@@ -461,21 +465,21 @@ namespace HookBypass {
 		if (!hModule) {
 			Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::wcerr << L"Error: GetModuleHandleW failed for " << dllName << L" (" << GetLastError() << L")" << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			return FALSE;
 		}
 		LPVOID oriMethodAddr = GetProcAddress(hModule, methodName);
 		if (!oriMethodAddr) {
 			Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::cerr << "Error: GetProcAddress failed for " << methodName << " in " << dllName << " (" << GetLastError() << ")" << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			return FALSE;
 		}
 		PBYTE originalGameBytes[6];
 		if (!ReadProcessMemory(hProcess, oriMethodAddr, originalGameBytes, sizeof(char) * 6, NULL)) {
 			Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::cerr << "Error: ReadProcessMemory failed for " << methodName << " in " << dllName << ": " << GetLastError() << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			return FALSE;
 		}
 
@@ -489,7 +493,7 @@ namespace HookBypass {
 		if (!WriteProcessMemory(hProcess, oriMethodAddr, originalDllBytes, sizeof(char) * 6, NULL)) {
 			Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::cerr << "Error: WriteProcessMemory failed for " << methodName << " in " << dllName << ": " << GetLastError() << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			return FALSE;
 		}
 		return TRUE;
@@ -500,20 +504,20 @@ namespace HookBypass {
 		if (!hModule) {
 			Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::wcerr << L"Error: GetModuleHandleW failed for " << dllName << L" (" << GetLastError() << L")" << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			return FALSE;
 		}
 		LPVOID oriMethodAddr = GetProcAddress(hModule, methodName);
 		if (!oriMethodAddr) {
 			Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::cerr << "Error: GetProcAddress failed for " << methodName << " in " << dllName << " (" << GetLastError() << ")" << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			return FALSE;
 		}
 		if (!WriteProcessMemory(hProcess, oriMethodAddr, save_origin_bytes, sizeof(char) * 6, NULL)) {
 			Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::cerr << "Error: WriteProcessMemory failed for " << methodName << " in " << dllName << ": " << GetLastError() << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			return FALSE;
 		}
 		return TRUE;
@@ -618,9 +622,9 @@ namespace SteamInjection {
 		std::string steamDllPathStr = steamDllPath.string();
 
 		if (std::filesystem::exists(steamDllPath)) {
-			Helper::SetConsoleColor(FOREGROUND_YELLOW | FOREGROUND_INTENSITY);
+			Helper::SetConsoleColor(FG_YELLOW | FOREGROUND_INTENSITY);
 			std::cout << "Found Steam DLL: " << steamDllName << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 
 			HANDLE hSteamProcess = ProcessUtils::GetProcessByName(L"steam.exe");
 			if (hSteamProcess) {
@@ -628,14 +632,14 @@ namespace SteamInjection {
 				if (!Injection::InjectDll(steamDllPathStr, hSteamProcess)) {
 					Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 					std::cerr << "Failed to inject into steam.exe" << std::endl;
-					Helper::SetConsoleColor(FOREGROUND_WHITE);
+					Helper::SetConsoleColor(FG_WHITE);
 					CloseHandle(hSteamProcess);
 					return false;
 				}
 				else {
-					Helper::SetConsoleColor(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+					Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
 					std::cout << "Successfully injected " << steamDllName << " into steam.exe" << std::endl;
-					Helper::SetConsoleColor(FOREGROUND_WHITE);
+					Helper::SetConsoleColor(FG_WHITE);
 					CloseHandle(hSteamProcess);
 					return true;
 				}
@@ -643,7 +647,7 @@ namespace SteamInjection {
 			else {
 				Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 				std::cerr << "Could not find steam.exe. Skipping Steam DLL injection." << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				return false;
 			}
 		}
@@ -691,23 +695,23 @@ namespace GameSpecific {
 			if (!HookBypass::BypassCSGO_hook(disableHooks)) {
 				Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 				std::cerr << "Failed to bypass VAC hooks!" << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				if (!disableHooks) {
 					if (!HookBypass::RestoreCSGO_hook()) {
 						Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 						std::cerr << "Failed to restore VAC hooks.  This is VERY dangerous." << std::endl;
-						Helper::SetConsoleColor(FOREGROUND_WHITE);
+						Helper::SetConsoleColor(FG_WHITE);
 					}
 				}
 				return false;
 			}
 			if (!disableHooks)
 			{
-				std::cout << "[+] VAC hooks bypassed." << std::endl;
+				std::cout << "[*] VAC hooks bypassed." << std::endl;
 			}
 			else
 			{
-				std::cout << "[+] VAC bypass not applied as the target process is steam." << std::endl;
+				std::cout << "[*] VAC bypass not applied as the target process is steam." << std::endl;
 			}
 
 		}
@@ -721,13 +725,13 @@ namespace GameSpecific {
 	bool RestoreHookBypass(const std::wstring& processName) {
 		if (processName == L"cs2.exe" || processName == L"csgo.exe") {
 			if (!HookBypass::RestoreCSGO_hook()) {
-				Helper::SetConsoleColor(FOREGROUND_YELLOW | FOREGROUND_INTENSITY);
+				Helper::SetConsoleColor(FG_YELLOW | FOREGROUND_INTENSITY);
 				std::cerr << "Warning: Failed to restore VAC hooks! This may result in a VAC ban." << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				return false;
 			}
 			else {
-				std::cout << "[+] VAC hooks restored." << std::endl;
+				std::cout << "[*] VAC hooks restored." << std::endl;
 				return true;
 			}
 		}
@@ -736,18 +740,18 @@ namespace GameSpecific {
 }
 
 int main(int argc, char* argv[]) {
-	SetConsoleTitleA("ChanchitoInjector");
+	SetConsoleTitleA("ChInjector");
 
 	if (argc == 1) {
 		Helper::PrintBanner();
 	}
 
 	if (Helper::IsElevated()) {
-		Helper::SetConsoleColor(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-		std::cout << "[+] Injector is running with administrator privileges." << std::endl;
+		Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
+		std::cout << "[*] Injector is running with administrator privileges." << std::endl;
 	}
 
-	Helper::SetConsoleColor(FOREGROUND_WHITE);
+	Helper::SetConsoleColor(FG_WHITE);
 	std::cout << std::endl;
 
 	std::string dllPath;
@@ -762,9 +766,9 @@ int main(int argc, char* argv[]) {
 		dllPath = argv[2];
 	}
 	else {
-		Helper::SetConsoleColor(FOREGROUND_YELLOW | FOREGROUND_INTENSITY);
+		Helper::SetConsoleColor(FG_YELLOW | FOREGROUND_INTENSITY);
 		std::cerr << "Usage: " << exeName << " <dll_path>\nOR: " << exeName << " <process_name_or_PID> <dll_path>" << std::endl << std::endl;
-		Helper::SetConsoleColor(FOREGROUND_WHITE);
+		Helper::SetConsoleColor(FG_WHITE);
 
 		system("pause");
 		return 1;
@@ -786,9 +790,9 @@ int main(int argc, char* argv[]) {
 	}
 
 	if (processNameOrId.empty()) {
-		Helper::SetConsoleColor(FOREGROUND_YELLOW | FOREGROUND_INTENSITY);
+		Helper::SetConsoleColor(FG_YELLOW | FOREGROUND_INTENSITY);
 		std::cout << "Please launch the target process..." << std::endl;
-		Helper::SetConsoleColor(FOREGROUND_WHITE);
+		Helper::SetConsoleColor(FG_WHITE);
 
 		bool gameFound = false;
 		for (int i = 0; i < 60; ++i) {
@@ -808,7 +812,7 @@ int main(int argc, char* argv[]) {
 		if (!gameFound) {
 			Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::cerr << "Timeout: Target process not launched within the waiting period." << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			return 1;
 		}
 	}
@@ -821,13 +825,13 @@ int main(int argc, char* argv[]) {
 			catch (const std::invalid_argument&) {
 				Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 				std::cerr << "Invalid process ID: " << processNameOrId << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				return 1;
 			}
 			catch (const std::out_of_range&) {
 				Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 				std::cerr << "Process ID out of range: " << processNameOrId << std::endl;
-				Helper::SetConsoleColor(FOREGROUND_WHITE);
+				Helper::SetConsoleColor(FG_WHITE);
 				return 1;
 			}
 		}
@@ -839,14 +843,14 @@ int main(int argc, char* argv[]) {
 		if (!hProcess) {
 			Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 			std::cerr << "Can not find process: " << processNameOrId << std::endl;
-			Helper::SetConsoleColor(FOREGROUND_WHITE);
+			Helper::SetConsoleColor(FG_WHITE);
 			return 1;
 		}
 	}
 
-	Helper::SetConsoleColor(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+	Helper::SetConsoleColor(FG_MAGENTA | FOREGROUND_INTENSITY);
 	std::wcout << L"Process found: " << targetProcessName << std::endl;
-	Helper::SetConsoleColor(FOREGROUND_WHITE);
+	Helper::SetConsoleColor(FG_WHITE);
 
 	std::string dllFileName = Helper::GetFileNameFromPath(dllPath);
 
@@ -864,7 +868,7 @@ int main(int argc, char* argv[]) {
 	if (!Injection::InjectDll(dllPath, hProcess)) {
 		Helper::SetConsoleColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
 		std::cerr << "Failed to inject DLL directly." << std::endl;
-		Helper::SetConsoleColor(FOREGROUND_WHITE);
+		Helper::SetConsoleColor(FG_WHITE);
 		GameSpecific::RestoreHookBypass(targetProcessName);
 		CloseHandle(hProcess);
 		return 1;
@@ -878,3 +882,4 @@ int main(int argc, char* argv[]) {
 	CloseHandle(hProcess);
 	return 0;
 }
+
