@@ -52,7 +52,7 @@ ChanchitoInjector.exe 1234 C:\cheats\mydll.dll
    <img src="previewchi.png" width="600" alt="preview"></img>
 </div>
 
-## CLI
+## Just drag the DLL onto the EXE.
 
 <div align="center">
    <img src="usage.png" width="600" alt="usage"></img>
